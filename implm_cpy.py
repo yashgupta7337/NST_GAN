@@ -7,6 +7,22 @@ import numpy as np
 from PIL import Image
 import os
 
+import azureml.core
+from azureml.core.run import Run
+
+print("Keras version:", keras.__version__)
+print("Using GPU build:", tf.test.is_built_with_cuda())
+print("Is GPU available:", tf.config.list_physical_devices('GPU'))
+print("Azure ML SDK version:", azureml.core.VERSION)
+
+run.log('logger: libraries/dependencies imported successfully...')
+
+# output_path = './output'
+try:
+    run = Run.get_context()
+except Exception as e:
+    run.log(f'logger error: run initialisation failed {e}')
+    
 # Preview image Frame
 PREVIEW_ROWS = 4
 PREVIEW_COLS = 7
@@ -21,9 +37,14 @@ GENERATE_RES = 3
 IMAGE_SIZE = 128  # rows/cols
 IMAGE_CHANNELS = 3
 
-training_data = np.load('pattern-data.npy')
+run.log('logger: variables created successfully...')
 
+try:
+    training_data = np.load('pattern-data.npy')
+except Exception as e:
+    run.log(f'logger error: failed to load training data {e}')
 
+    
 def build_discriminator(image_shape):
     model = Sequential()
     model.add(Conv2D(32, kernel_size=3, strides=2,
@@ -51,8 +72,9 @@ def build_discriminator(image_shape):
     model.add(Dense(1, activation="sigmoid"))
     input_image = Input(shape=image_shape)
     validity = model(input_image)
+    run.log('logger: discriminator built successfully...')
     return Model(input_image, validity)
-
+    
 
 def build_generator(noise_size, channels):
     model = Sequential()
@@ -76,7 +98,7 @@ def build_generator(noise_size, channels):
     model.add(Activation("tanh"))
     input = Input(shape=(noise_size,))
     generated_image = model(input)
-
+    run.log('logger: generator built successfully...')
     return Model(input, generated_image)
 
 
@@ -95,12 +117,17 @@ def save_images(cnt, noise):
             image_array[r:r + IMAGE_SIZE, c:c +
                         IMAGE_SIZE] = generated_images[image_count] * 255
             image_count += 1
-    output_path = '/Users/yashgupta/Desktop/GANS/result'
-    # if not os.path.exists(output_path):
-    #     os.makedirs(output_path)
+    output_path = './output'
+    if not os.path.exists(output_path):
+        run.log(f'logger: output path: {output_path} doesn\'t exists, creating one...')
+        os.makedirs(output_path)
+        run.log(f'output path created successfully: {output_path}')
     filename = os.path.join(output_path, f"trained-{cnt}.jpg")
     im = Image.fromarray(image_array)
+    run.log_image('Final Output', path=filename)
     im.save(filename)
+    run.log(f'logger: {filename} image saved successfully...')
+    
 
 
 image_shape = (IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNELS)
@@ -142,5 +169,6 @@ for epoch in range(EPOCHS):
     if epoch % SAVE_FREQ == 0:
         save_images(cnt, fixed_noise)
         cnt += 1
-        print(
-            f"{epoch} epoch, Discriminator accuracy: {100*  discriminator_metric[1]}, Generator accuracy: {100 * generator_metric[1]}")
+#         print(f"{epoch} epoch, Discriminator accuracy: {100*  discriminator_metric[1]}, Generator accuracy: {100 * generator_metric[1]}")
+        run.log(f"{epoch} epoch, Discriminator accuracy: {100*  discriminator_metric[1]}, Generator accuracy: {100 * generator_metric[1]}, cnt: {cnt}")
+run.log('logger: program terminated successfully...')
