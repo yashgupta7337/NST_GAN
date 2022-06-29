@@ -11,17 +11,13 @@ var loadFile = function (event) {
 const startButton = document.getElementById("start-button");
 var runApp = function () {
   console.log("running");
-  all_rows = {}; // id: objc
-  appending_container = "appending_container";
+  all_rows = {} // id: objc
+    appending_container = "appending_container"
 
-  project_name_1 = "burger";
-  let obj1 = makeGrabCutRow(
-    appending_container,
-    uploaded_image,
-    project_name_1
-  );
-  let obj1_id = obj1.id;
-  all_rows[obj1_id] = obj1;
+    project_name_1 = "burger"
+    let obj1 = makeGrabCutRow(appending_container, uploaded_image, project_name_1)
+    let obj1_id = obj1.id
+    all_rows[obj1_id] = obj1
 }
 //   all_rows = {}; // id: objc
 //   appending_container = "appending_container";
