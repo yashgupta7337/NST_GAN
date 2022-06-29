@@ -40,6 +40,8 @@
       <div class="container-fluid">
           <nav class="navbar navbar-light bg-light header">
               <span class="navbar-brand mb-0 h_text">Interactive Grabcut</span>
+              <input type="file" id="image-input" accept="image/jpeg, image/png, image/jpg" onchange="loadFile(event)">
+              <button id="start-button" onclick="runApp()">start</button>
             </nav>
         <div id="appending_container"></div>
     </div>
